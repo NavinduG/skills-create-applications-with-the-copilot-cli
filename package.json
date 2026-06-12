@@ -1,0 +1,13 @@
+{
+  "name": "skills-create-applications-with-the-copilot-cli",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Node.js calculator CLI exercise",
+  "main": "src/calculator.js",
+  "scripts": {
+    "test": "mocha \"src/tests/**/*.test.js\""
+  },
+  "devDependencies": {
+    "mocha": "^11.7.1"
+  }
+}
