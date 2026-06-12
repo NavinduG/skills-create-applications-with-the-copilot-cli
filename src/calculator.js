@@ -7,6 +7,9 @@
  * - subtraction
  * - multiplication
  * - division
+ * - modulo
+ * - power
+ * - square root
  */
 const OPERATIONS = {
   add: {
@@ -35,6 +38,21 @@ const OPERATIONS = {
       return left / right;
     },
   },
+  modulo: {
+    label: 'modulo',
+    symbol: '%',
+    compute: (left, right) => modulo(left, right),
+  },
+  power: {
+    label: 'power',
+    symbol: '^',
+    compute: (left, right) => power(left, right),
+  },
+  squareRoot: {
+    label: 'square root',
+    symbol: 'sqrt',
+    compute: (value) => squareRoot(value),
+  },
 };
 
 const OPERATION_ALIASES = {
@@ -47,6 +65,15 @@ const OPERATION_ALIASES = {
   multiply: 'multiply',
   '/': 'divide',
   divide: 'divide',
+  '%': 'modulo',
+  modulo: 'modulo',
+  mod: 'modulo',
+  '^': 'power',
+  power: 'power',
+  pow: 'power',
+  sqrt: 'squareRoot',
+  'square-root': 'squareRoot',
+  squareroot: 'squareRoot',
 };
 
 function normalizeOperation(value) {
@@ -67,6 +94,26 @@ function parseNumber(value, label) {
   return parsed;
 }
 
+function modulo(a, b) {
+  if (b === 0) {
+    throw new Error('Cannot modulo by zero.');
+  }
+
+  return a % b;
+}
+
+function power(base, exponent) {
+  return base ** exponent;
+}
+
+function squareRoot(n) {
+  if (n < 0) {
+    throw new Error('Cannot take the square root of a negative number.');
+  }
+
+  return Math.sqrt(n);
+}
+
 function calculate(operationName, leftOperand, rightOperand) {
   const operation = OPERATIONS[operationName];
 
@@ -80,13 +127,16 @@ function calculate(operationName, leftOperand, rightOperand) {
 function printUsage() {
   console.log([
     'Usage:',
-    '  node src/calculator.js <operation> <leftOperand> <rightOperand>',
+    '  node src/calculator.js <operation> <operand> [rightOperand]',
     '',
     'Operations:',
     '  add (+)        addition',
     '  subtract (-)   subtraction',
     '  multiply (*)   multiplication',
     '  divide (/)     division',
+    '  modulo (%)     remainder after division',
+    '  power (^)      exponentiation',
+    '  squareRoot     square root (unary)',
   ].join('\n'));
 }
 
@@ -98,7 +148,7 @@ function run(argv = process.argv.slice(2)) {
     return 0;
   }
 
-  if (!rawOperation || rawLeftOperand === undefined || rawRightOperand === undefined) {
+  if (!rawOperation || rawLeftOperand === undefined) {
     printUsage();
     return 1;
   }
@@ -110,9 +160,21 @@ function run(argv = process.argv.slice(2)) {
   }
 
   const leftOperand = parseNumber(rawLeftOperand, 'first operand');
-  const rightOperand = parseNumber(rawRightOperand, 'second operand');
+  const rightOperand = rawRightOperand === undefined
+    ? undefined
+    : parseNumber(rawRightOperand, 'second operand');
+  if (rightOperand === undefined && operationName !== 'squareRoot') {
+    printUsage();
+    return 1;
+  }
+
   const result = calculate(operationName, leftOperand, rightOperand);
   const { symbol } = OPERATIONS[operationName];
+
+  if (operationName === 'squareRoot') {
+    console.log(`${symbol}(${leftOperand}) = ${result}`);
+    return 0;
+  }
 
   console.log(`${leftOperand} ${symbol} ${rightOperand} = ${result}`);
   return 0;
@@ -130,7 +192,10 @@ if (require.main === module) {
 module.exports = {
   OPERATIONS,
   calculate,
+  modulo,
   normalizeOperation,
   parseNumber,
+  power,
+  squareRoot,
   run,
 };

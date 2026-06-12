@@ -11,7 +11,7 @@ const {
 describe('calculator', () => {
   describe('OPERATIONS', () => {
     it('lists the supported basic operations', () => {
-      assert.deepEqual(Object.keys(OPERATIONS).sort(), ['add', 'divide', 'multiply', 'subtract']);
+      assert.deepEqual(Object.keys(OPERATIONS).sort(), ['add', 'divide', 'modulo', 'multiply', 'power', 'squareRoot', 'subtract']);
     });
   });
 
@@ -21,7 +21,7 @@ describe('calculator', () => {
       assert.equal(normalizeOperation('+'), 'add');
     });
 
-    it('normalizes aliases for subtraction, multiplication, and division', () => {
+    it('normalizes aliases for subtraction, multiplication, division, modulo, power, and square root', () => {
       assert.equal(normalizeOperation('subtract'), 'subtract');
       assert.equal(normalizeOperation('-'), 'subtract');
       assert.equal(normalizeOperation('multiply'), 'multiply');
@@ -29,10 +29,16 @@ describe('calculator', () => {
       assert.equal(normalizeOperation('x'), 'multiply');
       assert.equal(normalizeOperation('divide'), 'divide');
       assert.equal(normalizeOperation('/'), 'divide');
+      assert.equal(normalizeOperation('modulo'), 'modulo');
+      assert.equal(normalizeOperation('%'), 'modulo');
+      assert.equal(normalizeOperation('power'), 'power');
+      assert.equal(normalizeOperation('^'), 'power');
+      assert.equal(normalizeOperation('squareRoot'), 'squareRoot');
+      assert.equal(normalizeOperation('sqrt'), 'squareRoot');
     });
 
     it('returns null for unsupported values', () => {
-      assert.equal(normalizeOperation('power'), null);
+      assert.equal(normalizeOperation('cube'), null);
       assert.equal(normalizeOperation(undefined), null);
     });
   });
@@ -65,12 +71,32 @@ describe('calculator', () => {
       assert.equal(calculate('divide', 20, 5), 4);
     });
 
+    it('calculates modulo', () => {
+      assert.equal(calculate('modulo', 20, 6), 2);
+    });
+
+    it('calculates power', () => {
+      assert.equal(calculate('power', 2, 3), 8);
+    });
+
+    it('calculates square root', () => {
+      assert.equal(calculate('squareRoot', 9), 3);
+    });
+
     it('rejects division by zero', () => {
       assert.throws(() => calculate('divide', 10, 0), /Cannot divide by zero/);
     });
 
+    it('rejects modulo by zero', () => {
+      assert.throws(() => calculate('modulo', 10, 0), /Cannot modulo by zero/);
+    });
+
+    it('rejects negative square roots', () => {
+      assert.throws(() => calculate('squareRoot', -1), /Cannot take the square root of a negative number/);
+    });
+
     it('rejects unsupported operations', () => {
-      assert.throws(() => calculate('power', 2, 3), /Unsupported operation/);
+      assert.throws(() => calculate('cube', 2, 3), /Unsupported operation/);
     });
   });
 
@@ -88,21 +114,23 @@ describe('calculator', () => {
       console.error = originalError;
     });
 
-    it('runs the image examples with basic operations', () => {
+    it('runs the extended operation examples', () => {
       const output = [];
       console.log = (message) => output.push(message);
 
-      assert.equal(run(['add', '2', '3']), 0);
-      assert.equal(run(['subtract', '10', '4']), 0);
-      assert.equal(run(['multiply', '45', '2']), 0);
-      assert.equal(run(['divide', '20', '5']), 0);
+      assert.equal(run(['%', '5', '2']), 0);
+      assert.equal(run(['^', '2', '3']), 0);
+      assert.equal(run(['sqrt', '16']), 0);
 
       assert.deepEqual(output, [
-        '2 + 3 = 5',
-        '10 - 4 = 6',
-        '45 * 2 = 90',
-        '20 / 5 = 4',
+       '5 % 2 = 1',
+       '2 ^ 3 = 8',
+       'sqrt(16) = 4',
       ]);
+    });
+
+    it('rejects square root of negative numbers', () => {
+      assert.throws(() => run(['sqrt', '-16']), /Cannot take the square root of a negative number/);
     });
 
     it('returns a non-zero code and prints help when arguments are missing', () => {
